@@ -111,7 +111,7 @@ async function getReports(req, res) {
   let query = supabase
     .from("reports")
     .select(
-      `id, report_code, title, category, status,
+      `id, report_code, title, description, category, status,
       latitude, longitude, address, photo_url,
       created_at, updated_at,
       users!reports_user_id_fkey(id, name, phone, avatar_url)`,
