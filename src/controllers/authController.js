@@ -37,7 +37,7 @@ function generateJwt(user) {
 
 async function register(req, res) {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -84,6 +84,7 @@ async function register(req, res) {
 
     const temp_data = JSON.stringify({
       name,
+      phone,
       password_hash,
       role: "citizen",
     });
@@ -189,6 +190,7 @@ async function verifyRegister(req, res) {
       .insert({
         name: temp.name,
         email,
+        phone: temp.phone,
         password_hash: temp.password_hash,
         role: temp.role,
       })
