@@ -1,0 +1,799 @@
+openapi: 3.0.0
+
+info:
+  title: EarthCare API
+  version: 1.0.0
+  description: |
+    EarthCare REST API
+    Platform Pelaporan Lingkungan Berbasis Lokasi
+
+servers:
+  - url: https://earthcare-api.vercel.app
+
+tags:
+  - name: Authentication
+  - name: Reports
+  - name: Upload
+  - name: Status
+  - name: Notifications
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          example: Budi Santoso
+
+        email:
+          type: string
+          example: budi@gmail.com
+
+        password:
+          type: string
+          example: Password123
+
+    VerifyOtpRequest:
+      type: object
+      required:
+        - email
+        - otp
+      properties:
+        email:
+          type: string
+          example: budi@gmail.com
+
+        otp:
+          type: string
+          example: "123456"
+
+    ResendOtpRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          example: budi@gmail.com
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          example: admin@gmail.com
+
+        password:
+          type: string
+          example: Password123
+
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          example: budi@gmail.com
+
+    VerifyForgotPasswordRequest:
+      type: object
+      required:
+        - email
+        - otp
+      properties:
+        email:
+          type: string
+          example: budi@gmail.com
+
+        otp:
+          type: string
+          example: "123456"
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - new_password
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIs...
+
+        new_password:
+          type: string
+          example: PasswordBaru123
+
+    CreateOfficerRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          example: Officer Surabaya
+
+        email:
+          type: string
+          example: officer@gmail.com
+
+        password:
+          type: string
+          example: Password123
+
+    CreateReportRequest:
+      type: object
+      required:
+        - title
+        - category
+        - latitude
+        - longitude
+        - photo_url
+
+      properties:
+
+        title:
+          type: string
+          example: Sampah Menumpuk di Sungai
+
+        description:
+          type: string
+          example: Banyak sampah plastik mengotori sungai
+
+        category:
+          type: string
+          enum:
+            - sampah_liar
+            - sungai_tercemar
+            - pohon_tumbang
+            - banjir
+            - polusi_udara
+            - kerusakan_fasilitas
+            - lainnya
+
+        latitude:
+          type: number
+          example: -7.250445
+
+        longitude:
+          type: number
+          example: 112.768845
+
+        address:
+          type: string
+          example: Surabaya Jawa Timur
+
+        photo_url:
+          type: string
+          example: https://storage.supabase.co/photo.jpg
+
+    SignedUrlRequest:
+      type: object
+      required:
+        - filename
+        - content_type
+
+      properties:
+        filename:
+          type: string
+          example: foto.jpg
+
+        content_type:
+          type: string
+          enum:
+            - image/jpeg
+            - image/png
+            - image/webp
+
+    DeletePhotoRequest:
+      type: object
+      required:
+        - path
+
+      properties:
+        path:
+          type: string
+          example: photos/user123/foto.jpg
+
+    UpdateStatusRequest:
+      type: object
+      required:
+        - status
+
+      properties:
+
+        status:
+          type: string
+          enum:
+            - received
+            - verified
+            - assigned
+            - in_progress
+            - resolved
+
+        note:
+          type: string
+          example: Laporan telah diverifikasi
+
+        photo_url:
+          type: string
+          example: https://storage.supabase.co/progress.jpg
+
+        assigned_officer_id:
+          type: string
+          example: 550e8400-e29b-41d4-a716-446655440000
+
+paths:
+
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register User (Send OTP)
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+
+      responses:
+        '200':
+          description: OTP berhasil dikirim
+          content:
+            application/json:
+              example:
+                success: true
+                message: OTP registrasi berhasil dikirim ke email
+
+  /api/auth/register/verify:
+    post:
+      tags:
+        - Authentication
+      summary: Verify Registration OTP
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+
+      responses:
+        '201':
+          description: Registrasi berhasil
+          content:
+            application/json:
+              example:
+                success: true
+                message: Registrasi berhasil
+                data:
+                  user:
+                    id: 550e8400-e29b-41d4-a716-446655440000
+                    name: Budi Santoso
+                    email: budi@gmail.com
+                    role: citizen
+                  token: eyJhbGciOiJIUzI1NiIs...
+
+        '400':
+          description: OTP salah atau expired
+
+  /api/auth/register/resend:
+    post:
+      tags:
+        - Authentication
+      summary: Resend Registration OTP
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResendOtpRequest'
+
+      responses:
+        '200':
+          description: OTP baru berhasil dikirim
+          content:
+            application/json:
+              example:
+                success: true
+                message: OTP baru berhasil dikirim
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login User
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              example:
+                success: true
+                message: Login berhasil
+                data:
+                  user:
+                    id: 550e8400-e29b-41d4-a716-446655440000
+                    name: Admin
+                    email: admin@gmail.com
+                    role: admin
+                  token: eyJhbGciOiJIUzI1NiIs...
+
+  /api/auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      summary: Forgot Password (Send OTP)
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+
+      responses:
+        '200':
+          description: OTP reset password berhasil dikirim
+          content:
+            application/json:
+              example:
+                success: true
+                message: OTP reset password berhasil dikirim
+
+  /api/auth/forgot-password/verify:
+    post:
+      tags:
+        - Authentication
+      summary: Verify Forgot Password OTP
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyForgotPasswordRequest'
+
+      responses:
+        '200':
+          description: OTP valid
+          content:
+            application/json:
+              example:
+                success: true
+                message: OTP valid
+                data:
+                  reset_token: eyJhbGciOiJIUzI1NiIs...
+
+  /api/auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      summary: Reset Password
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+
+      responses:
+        '200':
+          description: Password berhasil diubah
+          content:
+            application/json:
+              example:
+                success: true
+                message: Password berhasil diubah
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get Current User
+
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Profil user
+          content:
+            application/json:
+              example:
+                success: true
+
+                data:
+                  id: 550e8400-e29b-41d4-a716-446655440000
+                  name: Budi Santoso
+                  email: budi@gmail.com
+                  role: citizen
+                  created_at: 2025-01-01T10:00:00Z
+
+  /api/auth/officers:
+    post:
+      tags:
+        - Authentication
+      summary: Create Officer (Admin Only)
+
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOfficerRequest'
+
+      responses:
+        '201':
+          description: Officer berhasil dibuat
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  id: officer123
+                  name: Officer Surabaya
+                  email: officer@gmail.com
+                  role: officer
+
+  /api/reports:
+    get:
+      tags:
+        - Reports
+      summary: Get Reports
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+
+        - in: query
+          name: page
+          schema:
+            type: integer
+
+        - in: query
+          name: limit
+          schema:
+            type: integer
+
+        - in: query
+          name: category
+          schema:
+            type: string
+
+        - in: query
+          name: status
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Daftar laporan
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: report123
+                    report_code: EC-1748792000-AB12CD
+                    title: Sampah Menumpuk
+                    category: sampah_liar
+                    status: received
+                    
+
+    post:
+      tags:
+        - Reports
+      summary: Create Report
+
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportRequest'
+
+      responses:
+        '201':
+          description: Laporan berhasil dibuat
+          content:
+            application/json:
+              example:
+                success: true
+                message: Laporan berhasil dibuat
+
+  /api/reports/heatmap:
+    get:
+      tags:
+        - Reports
+      summary: Get Heatmap Data
+
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Data heatmap
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - latitude: -7.250445
+                    longitude: 112.768845
+                    category: sampah_liar
+
+  /api/reports/{id}:
+    get:
+      tags:
+        - Reports
+      summary: Get Report Detail
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Detail laporan
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  id: report123
+                  report_code: EC-1748792000-AB12CD
+                  title: Sampah Menumpuk di Sungai
+                  description: Banyak sampah plastik mengotori sungai
+                  category: sampah_liar
+                  status: received
+                  latitude: -7.250445
+                  longitude: 112.768845
+                  photo_url: https://storage.supabase.co/photo.jpg
+                  created_at: 2025-01-01T10:00:00Z
+
+    delete:
+      tags:
+        - Reports
+      summary: Delete Report
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Laporan berhasil dihapus
+          content:
+            application/json:
+              example:
+                success: true
+                message: Laporan berhasil dihapus
+
+  /api/upload/signed-url:
+    post:
+      tags:
+        - Upload
+      summary: Generate Signed Upload URL
+
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedUrlRequest'
+
+      responses:
+        '200':
+          description: Signed URL berhasil dibuat
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  signed_url: https://xxxxx.supabase.co/storage/v1/upload
+                  token: abcdef123456
+                  path: reports/user123/foto.jpg
+                  public_url: https://xxxxx.supabase.co/storage/v1/object/public/reports/user123/foto.jpg
+
+  /api/upload:
+    delete:
+      tags:
+        - Upload
+      summary: Delete Photo
+
+      security:
+        - bearerAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeletePhotoRequest'
+
+      responses:
+        '200':
+          description: Foto berhasil dihapus
+          content:
+            application/json:
+              example:
+                success: true
+                message: Foto berhasil dihapus
+
+  /api/status/{reportId}:
+    patch:
+      tags:
+        - Status
+      summary: Update Report Status
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStatusRequest'
+
+      responses:
+        '200':
+          description: Status berhasil diperbarui
+          content:
+            application/json:
+              example:
+                success: true
+                message: Status berhasil diperbarui
+                data:
+                  report_id: report123
+                  status: verified
+
+  /api/status/{reportId}/history:
+    get:
+      tags:
+        - Status
+      summary: Get Status History
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Riwayat status laporan
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - status: received
+                    note: Laporan diterima
+                    created_at: 2025-01-01T10:00:00Z
+
+                  - status: verified
+                    note: Laporan diverifikasi
+                    created_at: 2025-01-01T11:00:00Z
+
+                  - status: assigned
+                    note: Ditugaskan ke petugas
+                    created_at: 2025-01-01T12:00:00Z
+
+  /api/status/notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Get Notifications
+
+      security:
+        - bearerAuth: []
+
+      responses:
+        '200':
+          description: Daftar notifikasi user
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: notif123
+                    title: Status Laporan Diperbarui
+                    body: Laporan Anda telah diverifikasi
+                    is_read: false
+                    created_at: 2025-01-01T12:00:00Z
+
+                  - id: notif124
+                    title: Laporan Selesai
+                    body: Laporan Anda telah diselesaikan
+                    is_read: true
+                    created_at: 2025-01-02T08:00:00Z
+
+  /api/status/notifications/{id}/read:
+    patch:
+      tags:
+        - Notifications
+      summary: Mark Notification As Read
+
+      security:
+        - bearerAuth: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Notifikasi berhasil ditandai dibaca
+          content:
+            application/json:
+              example:
+                success: true
+                message: Notifikasi ditandai sudah dibaca
