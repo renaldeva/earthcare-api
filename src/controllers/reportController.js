@@ -252,31 +252,52 @@ async function getHeatmap(req, res) {
 async function deleteReport(req, res) {
   const { id } = req.params;
 
-  const { data: report } = await supabase
+  // Cek apakah laporan ada dan milik user
+  const { data: report, error: fetchError } = await supabase
     .from("reports")
-    .select("id, user_id")
+    .select("id, status, user_id")
     .eq("id", id)
     .single();
 
-  if (!report) {
+  if (fetchError || !report) {
     return res
       .status(404)
       .json({ success: false, message: "Laporan tidak ditemukan" });
   }
 
-  if (req.user.role !== "admin" && report.user_id !== req.user.id) {
-    return res.status(403).json({ success: false, message: "Akses ditolak" });
+  if (report.user_id !== req.user.id && req.user.role !== "admin") {
+    return res
+      .status(403)
+      .json({ success: false, message: "Akses ditolak" });
   }
 
-  const { error } = await supabase.from("reports").delete().eq("id", id);
+  if (req.user.role !== "admin" && report.status !== "received") {
+    return res.status(400).json({
+      success: false,
+      message: "Laporan tidak bisa dibatalkan karena sudah diproses",
+    });
+  }
 
-  if (error) {
+  // Hapus notifikasi terkait laporan ini (agar tidak error FK jika cascade off)
+  await supabase.from("notifications").delete().eq("report_id", id);
+
+  // Hapus riwayat status
+  await supabase.from("report_status_history").delete().eq("report_id", id);
+
+  // Hapus laporan
+  const { error: deleteError } = await supabase
+    .from("reports")
+    .delete()
+    .eq("id", id);
+
+  if (deleteError) {
+    console.error(deleteError);
     return res
       .status(500)
-      .json({ success: false, message: "Gagal menghapus laporan" });
+      .json({ success: false, message: "Gagal membatalkan laporan" });
   }
 
-  return res.json({ success: true, message: "Laporan berhasil dihapus" });
+  return res.json({ success: true, message: "Laporan berhasil dibatalkan" });
 }
 
 module.exports = {
