@@ -6,6 +6,7 @@ const {
   getReportById,
   getHeatmap,
   deleteReport,
+  getMyReports,
 } = require("../controllers/reportController");
 const { authenticate, authorize } = require("../middleware/auth");
 
@@ -14,6 +15,9 @@ router.use(authenticate);
 
 // GET /api/reports/heatmap  — harus sebelum /:id agar tidak ditangkap sebagai ID
 router.get("/heatmap", getHeatmap);
+
+// GET /api/reports/me
+router.get("/me", getMyReports);
 
 // GET  /api/reports
 router.get("/", getReports);

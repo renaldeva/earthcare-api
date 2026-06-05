@@ -3,13 +3,13 @@ const supabase = require("../lib/supabase");
 
 // Kategori masalah yang valid
 const VALID_CATEGORIES = [
-  "Sampah Liar",
-  "Sungai Tercemar",
-  "Pohon Tumbang",
-  "Banjir",
-  "Polusi Udara",
-  "Kerusakan Fasilitas",
-  "Lainnya",
+  "sampah_liar",
+  "sungai_tercemar",
+  "pohon_tumbang",
+  "banjir",
+  "polusi_udara",
+  "kerusakan_fasilitas",
+  "lainnya",
 ];
 
 // Generate report code tanpa uuid
@@ -138,6 +138,49 @@ async function getReports(req, res) {
   });
 }
 
+// ── GET /api/reports/me ─────────────────────────────────
+async function getMyReports(req, res) {
+  const { page = 1, limit = 10, category, status } = req.query;
+
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+
+  let query = supabase
+    .from("reports")
+    .select(
+      `id, report_code, title, category, status,
+      latitude, longitude, address, photo_url,
+      created_at, updated_at,
+      users!reports_user_id_fkey(id, name, avatar_url)`,
+      { count: "exact" }
+    )
+    .eq("user_id", req.user.id)
+    .order("created_at", { ascending: false })
+    .range(offset, offset + parseInt(limit) - 1);
+
+  if (category) query = query.eq("category", category);
+  if (status) query = query.eq("status", status);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Gagal mengambil laporan" });
+  }
+
+  return res.json({
+    success: true,
+    data,
+    pagination: {
+      total: count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total_pages: Math.ceil(count / parseInt(limit)),
+    },
+  });
+}
+
 // ── GET /api/reports/:id ────────────────────────────────
 async function getReportById(req, res) {
   const { id } = req.params;
@@ -232,4 +275,5 @@ module.exports = {
   getReportById,
   getHeatmap,
   deleteReport,
+  getMyReports,
 };
