@@ -79,6 +79,16 @@ async function createReport(req, res) {
     note: "Laporan diterima oleh sistem",
   });
 
+  // Kirim notifikasi konfirmasi ke pembuat laporan
+  await supabase.from("notifications").insert({
+    user_id: req.user.id,
+    report_id: report.id,
+    type: "report_created",
+    title: "Laporan Berhasil Dibuat!",
+    body: `Laporan "${title}" telah kami terima dan akan segera diverifikasi oleh petugas.`,
+    is_read: false,
+  });
+
   return res.status(201).json({
     success: true,
     message: "Laporan berhasil dibuat",
