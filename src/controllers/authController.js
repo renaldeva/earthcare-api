@@ -384,7 +384,7 @@ async function me(req, res) {
     const { data: user, error } = await supabase
       .from("users")
       .select(
-        "id, name, email, role, avatar_url, created_at"
+        "id, name, email, phone, role, avatar_url, created_at"
       )
       .eq("id", req.user.id)
       .single();
@@ -695,6 +695,54 @@ async function createOfficer(req, res) {
 }
 
 /* =========================
+   UPDATE PROFILE
+========================= */
+async function updateProfile(req, res) {
+  try {
+    const { name, phone, avatar_url } = req.body;
+
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (phone !== undefined) updates.phone = phone;
+    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Tidak ada data yang diupdate",
+      });
+    }
+
+    const { data: user, error } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("id", req.user.id)
+      .select("id, name, email, phone, role, avatar_url, created_at")
+      .single();
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Gagal mengupdate profil",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Profil berhasil diupdate",
+      data: user,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server",
+    });
+  }
+}
+
+/* =========================
    EXPORTS
 ========================= */
 module.exports = {
@@ -710,4 +758,5 @@ module.exports = {
   resetPassword,
 
   createOfficer,
+  updateProfile,
 };

@@ -14,6 +14,7 @@ const {
   resetPassword,
 
   createOfficer,
+  updateProfile,
 } = require("../controllers/authController");
 
 const {
@@ -81,6 +82,12 @@ router.get(
   "/me",
   authenticate,
   me
+);
+
+router.put(
+  "/profile",
+  authenticate,
+  updateProfile
 );
 
 /*
