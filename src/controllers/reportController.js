@@ -114,7 +114,7 @@ async function getReports(req, res) {
       `id, report_code, title, category, status,
       latitude, longitude, address, photo_url,
       created_at, updated_at,
-      users!reports_user_id_fkey(id, name, avatar_url)`,
+      users!reports_user_id_fkey(id, name, phone, avatar_url)`,
       { count: "exact" }
     )
     .order("created_at", { ascending: false })
