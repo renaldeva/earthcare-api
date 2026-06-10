@@ -53,7 +53,7 @@ async function updateStatus(req, res) {
   const currentIdx = STATUS_FLOW.indexOf(report.status);
   const newIdx = STATUS_FLOW.indexOf(status);
 
-  if (newIdx <= currentIdx) {
+  if (newIdx < currentIdx) {
     return res.status(400).json({
       success: false,
       message: `Status tidak bisa dikembalikan dari "${STATUS_LABELS[report.status]}" ke "${STATUS_LABELS[status]}"`,
