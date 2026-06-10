@@ -5,6 +5,7 @@ const {
   getStatusHistory,
   getNotifications,
   markNotificationRead,
+  markAllNotificationsRead,
 } = require("../controllers/statusController");
 const { authenticate, authorize } = require("../middleware/auth");
 
@@ -18,6 +19,9 @@ router.get("/:reportId/history", getStatusHistory);
 
 // GET /api/status/notifications
 router.get("/notifications", getNotifications);
+
+// PATCH /api/status/notifications/read-all
+router.patch("/notifications/read-all", markAllNotificationsRead);
 
 // PATCH /api/status/notifications/:id/read
 router.patch("/notifications/:id/read", markNotificationRead);

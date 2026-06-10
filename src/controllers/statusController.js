@@ -170,9 +170,28 @@ async function markNotificationRead(req, res) {
   return res.json({ success: true, message: "Notifikasi ditandai sudah dibaca" });
 }
 
+// ── PATCH /api/status/notifications/read-all ────────────
+// Tandai semua notifikasi sebagai sudah dibaca
+async function markAllNotificationsRead(req, res) {
+  const { error } = await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("user_id", req.user.id)
+    .eq("is_read", false);
+
+  if (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Gagal memperbarui notifikasi" });
+  }
+
+  return res.json({ success: true, message: "Semua notifikasi ditandai sudah dibaca" });
+}
+
 module.exports = {
   updateStatus,
   getStatusHistory,
   getNotifications,
   markNotificationRead,
+  markAllNotificationsRead,
 };
