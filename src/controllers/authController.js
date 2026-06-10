@@ -632,7 +632,7 @@ async function resetPassword(req, res) {
 ========================= */
 async function createOfficer(req, res) {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone, sector, officer_status } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -666,9 +666,12 @@ async function createOfficer(req, res) {
         email,
         password_hash,
         role: "officer",
+        phone: phone || null,
+        sector: sector || null,
+        officer_status: officer_status || "Aktif",
       })
       .select(
-        "id,name,email,role,created_at"
+        "id,name,email,role,phone,sector,officer_status,created_at"
       )
       .single();
 
@@ -745,6 +748,95 @@ async function updateProfile(req, res) {
 }
 
 /* =========================
+   GET OFFICERS
+========================= */
+async function getOfficers(req, res) {
+  try {
+    const { data: officers, error } = await supabase
+      .from("users")
+      .select("id, name, email, phone, role, avatar_url, sector, officer_status, created_at")
+      .eq("role", "officer")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Gagal mengambil daftar petugas",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: officers,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server",
+    });
+  }
+}
+
+/* =========================
+   UPDATE OFFICER
+========================= */
+async function updateOfficer(req, res) {
+  try {
+    const { id } = req.params;
+    const { name, email, phone, sector, officer_status, avatar_url, password } = req.body;
+
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (email !== undefined) updates.email = email;
+    if (phone !== undefined) updates.phone = phone;
+    if (sector !== undefined) updates.sector = sector;
+    if (officer_status !== undefined) updates.officer_status = officer_status;
+    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+    
+    if (password) {
+      updates.password_hash = await bcrypt.hash(password, 12);
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Tidak ada data yang diupdate",
+      });
+    }
+
+    const { data: officer, error } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("id", id)
+      .eq("role", "officer")
+      .select("id, name, email, phone, role, avatar_url, sector, officer_status, created_at")
+      .single();
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Gagal mengupdate petugas",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Petugas berhasil diupdate",
+      data: officer,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server",
+    });
+  }
+}
+
+/* =========================
    EXPORTS
 ========================= */
 module.exports = {
@@ -760,5 +852,7 @@ module.exports = {
   resetPassword,
 
   createOfficer,
+  getOfficers,
+  updateOfficer,
   updateProfile,
 };

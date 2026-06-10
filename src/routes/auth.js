@@ -14,6 +14,8 @@ const {
   resetPassword,
 
   createOfficer,
+  getOfficers,
+  updateOfficer,
   updateProfile,
 } = require("../controllers/authController");
 
@@ -101,6 +103,20 @@ router.post(
   authenticate,
   authorize("admin"),
   createOfficer
+);
+
+router.get(
+  "/officers",
+  authenticate,
+  authorize("admin"),
+  getOfficers
+);
+
+router.put(
+  "/officers/:id",
+  authenticate,
+  authorize("admin"),
+  updateOfficer
 );
 
 module.exports = router;
