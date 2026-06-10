@@ -171,4 +171,12 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Jalankan server jika file ini dieksekusi secara langsung (local environment)
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server berjalan di http://localhost:${PORT}`);
+  });
+}
+
 module.exports = app;

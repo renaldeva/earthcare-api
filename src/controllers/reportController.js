@@ -112,7 +112,7 @@ async function getReports(req, res) {
     .from("reports")
     .select(
       `id, report_code, title, description, category, status,
-      latitude, longitude, address, photo_url,
+      latitude, longitude, address, photo_url, assigned_officer_id,
       created_at, updated_at,
       users!reports_user_id_fkey(id, name, phone, avatar_url)`,
       { count: "exact" }
@@ -158,7 +158,7 @@ async function getMyReports(req, res) {
     .from("reports")
     .select(
       `id, report_code, title, category, status,
-      latitude, longitude, address, photo_url,
+      latitude, longitude, address, photo_url, assigned_officer_id,
       created_at, updated_at,
       users!reports_user_id_fkey(id, name, avatar_url)`,
       { count: "exact" }
