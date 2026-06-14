@@ -1,11 +1,16 @@
 const admin = require("firebase-admin");
 const path = require("path");
 
-// Resolve the path to serviceAccountKey.json at the root of the backend folder
-const serviceAccountPath = path.resolve(__dirname, "../../serviceAccountKey.json");
+// Coba baca dari environment variable dulu (untuk Vercel/Production)
+let serviceAccount;
 
 try {
-  const serviceAccount = require(serviceAccountPath);
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } else {
+    // Fallback baca dari file lokal (di folder src/config/)
+    serviceAccount = require("./serviceAccountKey.json");
+  }
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
@@ -13,7 +18,7 @@ try {
 
   console.log("Firebase Admin SDK initialized successfully.");
 } catch (error) {
-  console.error("Failed to initialize Firebase Admin SDK. Please ensure serviceAccountKey.json exists in the root folder.", error.message);
+  console.error("Failed to initialize Firebase Admin SDK.", error.message);
 }
 
 const sendPushNotification = async (fcmToken, title, body, data = {}) => {
