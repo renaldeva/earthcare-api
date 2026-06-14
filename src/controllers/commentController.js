@@ -9,17 +9,18 @@ async function getComments(req, res) {
     .select(
       `
       id, content, created_at,
-      user:users(id, name, avatar_url, role)
+      users(id, name, avatar_url, role)
       `
     )
     .eq("report_id", reportId)
     .order("created_at", { ascending: true });
 
   if (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Gagal mengambil komentar" });
+    console.error("Supabase Error GET comments:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Gagal mengambil komentar: " + error.message,
+    });
   }
 
   return res.json({ success: true, data });
@@ -46,16 +47,17 @@ async function addComment(req, res) {
     .select(
       `
       id, content, created_at,
-      user:users(id, name, avatar_url, role)
+      users(id, name, avatar_url, role)
       `
     )
     .single();
 
   if (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Gagal menambahkan komentar" });
+    console.error("Supabase Error POST comment:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Gagal menambahkan komentar: " + error.message,
+    });
   }
 
   return res.status(201).json({
