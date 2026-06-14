@@ -89,6 +89,23 @@ async function createReport(req, res) {
     is_read: false,
   });
 
+  // Send push notification via Firebase Admin
+  const { data: userData } = await supabase
+    .from("users")
+    .select("fcm_token")
+    .eq("id", req.user.id)
+    .single();
+
+  if (userData && userData.fcm_token) {
+    const { sendPushNotification } = require("../config/firebase");
+    await sendPushNotification(
+      userData.fcm_token,
+      "Laporan Berhasil Dibuat!",
+      `Laporan "${title}" telah kami terima dan akan segera diverifikasi oleh petugas.`,
+      { reportId: report.id.toString(), type: "report_created" }
+    );
+  }
+
   return res.status(201).json({
     success: true,
     message: "Laporan berhasil dibuat",

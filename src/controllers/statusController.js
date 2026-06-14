@@ -117,6 +117,23 @@ async function updateStatus(req, res) {
     is_read: false,
   });
 
+  // Send push notification via Firebase Admin
+  const { data: userData } = await supabase
+    .from("users")
+    .select("fcm_token")
+    .eq("id", report.user_id)
+    .single();
+
+  if (userData && userData.fcm_token) {
+    const { sendPushNotification } = require("../config/firebase");
+    await sendPushNotification(
+      userData.fcm_token,
+      "Laporan kamu diperbarui",
+      `Status laporan kamu sekarang: ${STATUS_LABELS[status]}`,
+      { reportId: reportId.toString(), type: "status_update" }
+    );
+  }
+
   return res.json({
     success: true,
     message: `Status berhasil diperbarui ke "${STATUS_LABELS[status]}"`,
