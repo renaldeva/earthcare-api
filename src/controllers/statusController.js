@@ -1,4 +1,5 @@
 const supabase = require("../lib/supabase");
+const { createAndSendNotification } = require("../lib/notificationHelper");
 
 // Urutan status yang valid dan arahnya
 const STATUS_FLOW = [
@@ -62,10 +63,6 @@ async function updateStatus(req, res) {
 
   // Update tabel reports
   const updatePayload = { status, updated_at: new Date().toISOString() };
-  // We no longer use assigned_officer_id in reports table
-  // if (assigned_officer_ids && assigned_officer_ids.length > 0) {
-  //   updatePayload.assigned_officer_id = assigned_officer_ids[0]; // fallback legacy
-  // }
 
   const { data: updated, error: updateError } = await supabase
     .from("reports")
@@ -97,34 +94,13 @@ async function updateStatus(req, res) {
       console.error("Gagal insert report_assignees:", assignError);
     } else {
       // Send notifications to assigned officers
-      const { data: officers } = await supabase
-        .from("users")
-        .select("id, fcm_token")
-        .in("id", assigned_officer_ids);
-        
-      if (officers && officers.length > 0) {
-        const officerNotifications = officers.map(officer => ({
-          user_id: officer.id,
-          report_id: reportId,
-          type: "assigned_report",
-          title: "Tugas Baru!",
-          body: `Anda telah ditugaskan untuk menangani Laporan baru. Segera cek!`,
-          is_read: false,
-        }));
-        await supabase.from("notifications").insert(officerNotifications);
-
-        const { sendPushNotification } = require("../config/firebase");
-        for (const officer of officers) {
-          if (officer.fcm_token) {
-            await sendPushNotification(
-              officer.fcm_token,
-              "Tugas Baru!",
-              `Anda telah ditugaskan untuk menangani Laporan baru. Segera cek!`,
-              { reportId: reportId.toString(), type: "assigned_report" }
-            );
-          }
-        }
-      }
+      await createAndSendNotification(
+        assigned_officer_ids,
+        reportId,
+        "assigned_report",
+        "Tugas Baru!",
+        `Anda telah ditugaskan untuk menangani Laporan baru. Segera cek!`
+      );
     }
   }
 
@@ -138,31 +114,13 @@ async function updateStatus(req, res) {
   });
 
   // Kirim notifikasi ke pemilik laporan
-  await supabase.from("notifications").insert({
-    user_id: report.user_id,
-    report_id: reportId,
-    type: "status_update",
-    title: `Laporan kamu diperbarui`,
-    body: `Status laporan kamu sekarang: ${STATUS_LABELS[status]}`,
-    is_read: false,
-  });
-
-  // Send push notification via Firebase Admin
-  const { data: userData } = await supabase
-    .from("users")
-    .select("fcm_token")
-    .eq("id", report.user_id)
-    .single();
-
-  if (userData && userData.fcm_token) {
-    const { sendPushNotification } = require("../config/firebase");
-    await sendPushNotification(
-      userData.fcm_token,
-      "Laporan kamu diperbarui",
-      `Status laporan kamu sekarang: ${STATUS_LABELS[status]}`,
-      { reportId: reportId.toString(), type: "status_update" }
-    );
-  }
+  await createAndSendNotification(
+    report.user_id,
+    reportId,
+    "status_update",
+    `Laporan kamu diperbarui`,
+    `Status laporan kamu sekarang: ${STATUS_LABELS[status]}`
+  );
 
   return res.json({
     success: true,
