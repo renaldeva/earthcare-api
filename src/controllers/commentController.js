@@ -9,7 +9,7 @@ async function getComments(req, res) {
     .select(
       `
       id, content, created_at,
-      user:users!report_comments_user_id_fkey(id, name, avatar_url, role)
+      user:users(id, name, avatar_url, role)
       `
     )
     .eq("report_id", reportId)
@@ -46,7 +46,7 @@ async function addComment(req, res) {
     .select(
       `
       id, content, created_at,
-      user:users!report_comments_user_id_fkey(id, name, avatar_url, role)
+      user:users(id, name, avatar_url, role)
       `
     )
     .single();
