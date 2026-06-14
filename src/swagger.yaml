@@ -311,7 +311,7 @@ paths:
         '400':
           description: OTP salah atau expired
 
-  /api/auth/register/resend:
+  /api/auth/register/resend-otp:
     post:
       tags:
         - Authentication
@@ -430,6 +430,30 @@ paths:
                 success: true
                 message: Password berhasil diubah
 
+  /api/auth/profile:
+    put:
+      tags:
+        - Authentication
+      summary: Update User Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Budi Santoso
+                phone:
+                  type: string
+                  example: 08123456789
+      responses:
+        '200':
+          description: Profil berhasil diupdate
+
   /api/auth/me:
     get:
       tags:
@@ -455,6 +479,25 @@ paths:
                   created_at: 2025-01-01T10:00:00Z
 
   /api/auth/officers:
+    get:
+      tags:
+        - Authentication
+      summary: Get All Officers (Admin Only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Daftar petugas
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: officer123
+                    name: Officer Surabaya
+                    email: officer@gmail.com
+                    role: officer
+
     post:
       tags:
         - Authentication
@@ -482,6 +525,34 @@ paths:
                   name: Officer Surabaya
                   email: officer@gmail.com
                   role: officer
+
+  /api/auth/officers/{id}:
+    put:
+      tags:
+        - Authentication
+      summary: Update Officer (Admin Only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Officer berhasil diupdate
 
   /api/reports:
     get:
@@ -552,6 +623,27 @@ paths:
               example:
                 success: true
                 message: Laporan berhasil dibuat
+
+  /api/reports/me:
+    get:
+      tags:
+        - Reports
+      summary: Get My Reports
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Daftar laporan saya
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: report123
+                    report_code: EC-1748792000-AB12CD
+                    title: Sampah Menumpuk
+                    category: sampah_liar
+                    status: received
 
   /api/reports/heatmap:
     get:
