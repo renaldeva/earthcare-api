@@ -16,6 +16,7 @@ tags:
   - name: Upload
   - name: Status
   - name: Notifications
+  - name: Comments
 
 components:
 
@@ -26,6 +27,19 @@ components:
       bearerFormat: JWT
 
   schemas:
+
+    CreateCommentRequest:
+      type: object
+      required:
+        - report_id
+        - comment
+      properties:
+        report_id:
+          type: string
+          example: uuid-report-123
+        comment:
+          type: string
+          example: Komentar saya
 
     RegisterRequest:
       type: object
@@ -797,3 +811,78 @@ paths:
               example:
                 success: true
                 message: Notifikasi ditandai sudah dibaca
+
+  /api/comments/{reportId}:
+    get:
+      tags:
+        - Comments
+      summary: Get Comments for a Report
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Daftar komentar
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: comment123
+                    report_id: report123
+                    user_id: user123
+                    comment: "Komentar teks"
+                    created_at: 2025-01-01T10:00:00Z
+                    users:
+                      name: Budi
+                      avatar_url: null
+                      role: citizen
+
+  /api/comments:
+    post:
+      tags:
+        - Comments
+      summary: Add a Comment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+      responses:
+        '201':
+          description: Komentar berhasil ditambahkan
+          content:
+            application/json:
+              example:
+                success: true
+                message: Komentar berhasil ditambahkan
+
+  /api/comments/{id}:
+    delete:
+      tags:
+        - Comments
+      summary: Delete a Comment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Komentar berhasil dihapus
+          content:
+            application/json:
+              example:
+                success: true
+                message: Komentar berhasil dihapus
