@@ -706,12 +706,13 @@ async function createOfficer(req, res) {
 ========================= */
 async function updateProfile(req, res) {
   try {
-    const { name, phone, avatar_url } = req.body;
+    const { name, phone, avatar_url, fcm_token } = req.body;
 
     const updates = {};
     if (name !== undefined) updates.name = name;
     if (phone !== undefined) updates.phone = phone;
     if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+    if (fcm_token !== undefined) updates.fcm_token = fcm_token;
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
