@@ -195,7 +195,7 @@ async function verifyRegister(req, res) {
         role: temp.role,
       })
       .select(
-        "id, name, email, role, created_at"
+        "id, name, email, phone, role, avatar_url, created_at"
       )
       .single();
 
