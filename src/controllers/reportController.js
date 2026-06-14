@@ -114,7 +114,8 @@ async function getReports(req, res) {
       `id, report_code, title, description, category, status,
       latitude, longitude, address, photo_url, assigned_officer_id,
       created_at, updated_at,
-      users!reports_user_id_fkey(id, name, phone, avatar_url)`,
+      users!reports_user_id_fkey(id, name, phone, avatar_url),
+      report_comments(count)`,
       { count: "exact" }
     )
     .order("created_at", { ascending: false })
@@ -160,7 +161,8 @@ async function getMyReports(req, res) {
       `id, report_code, title, category, status,
       latitude, longitude, address, photo_url, assigned_officer_id,
       created_at, updated_at,
-      users!reports_user_id_fkey(id, name, avatar_url)`,
+      users!reports_user_id_fkey(id, name, avatar_url),
+      report_comments(count)`,
       { count: "exact" }
     )
     .eq("user_id", req.user.id)
