@@ -21,7 +21,7 @@ const STATUS_LABELS = {
 // Update status laporan (hanya officer / admin)
 async function updateStatus(req, res) {
   const { reportId } = req.params;
-  const { status, note, photo_url, assigned_officer_id } = req.body;
+  const { status, note, photo_url, assigned_officer_ids } = req.body;
 
   if (!status) {
     return res
@@ -62,9 +62,10 @@ async function updateStatus(req, res) {
 
   // Update tabel reports
   const updatePayload = { status, updated_at: new Date().toISOString() };
-  if (assigned_officer_id) {
-    updatePayload.assigned_officer_id = assigned_officer_id;
-  }
+  // We no longer use assigned_officer_id in reports table
+  // if (assigned_officer_ids && assigned_officer_ids.length > 0) {
+  //   updatePayload.assigned_officer_id = assigned_officer_ids[0]; // fallback legacy
+  // }
 
   const { data: updated, error: updateError } = await supabase
     .from("reports")
@@ -78,6 +79,23 @@ async function updateStatus(req, res) {
     return res
       .status(500)
       .json({ success: false, message: "Gagal memperbarui status" });
+  }
+
+  // Handle multiple assignees
+  if (assigned_officer_ids && Array.isArray(assigned_officer_ids) && assigned_officer_ids.length > 0) {
+    // 1. Delete existing assignees for this report
+    await supabase.from("report_assignees").delete().eq("report_id", reportId);
+
+    // 2. Insert new assignees
+    const assigneePayload = assigned_officer_ids.map(officerId => ({
+      report_id: reportId,
+      officer_id: officerId
+    }));
+    const { error: assignError } = await supabase.from("report_assignees").insert(assigneePayload);
+    
+    if (assignError) {
+      console.error("Gagal insert report_assignees:", assignError);
+    }
   }
 
   // Catat ke riwayat status
