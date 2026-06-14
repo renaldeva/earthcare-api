@@ -12,4 +12,4 @@ INSERT INTO report_assignees (report_id, officer_id)
 SELECT id, assigned_officer_id 
 FROM reports 
 WHERE assigned_officer_id IS NOT NULL
-ON CONFLICT DO NOTHING;
+ON CONFLICT (report_id, officer_id) DO NOTHING;
