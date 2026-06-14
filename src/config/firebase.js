@@ -7,7 +7,11 @@ let serviceAccount;
 
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } catch (parseError) {
+      console.error("CRITICAL ERROR: FIREBASE_SERVICE_ACCOUNT is not valid JSON. Please check Vercel Environment Variables.", parseError.message);
+    }
   } else {
     // Fallback baca dari file lokal jika ada
     try {
@@ -18,12 +22,14 @@ try {
   }
 
   if (serviceAccount) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-    console.log("Firebase Admin SDK initialized successfully.");
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      console.log("Firebase Admin SDK initialized successfully.");
+    }
   } else {
-    console.warn("Firebase Admin SDK not initialized: No credentials provided.");
+    console.error("CRITICAL ERROR: Firebase Admin SDK not initialized! No credentials provided. Push notifications will crash.");
   }
 } catch (error) {
   console.error("Failed to initialize Firebase Admin SDK.", error.message);
@@ -33,6 +39,11 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
   if (!fcmToken) return;
   
   try {
+    if (!admin.apps.length) {
+      console.error("Cannot send push notification: Firebase app is not initialized.");
+      return;
+    }
+
     const message = {
       notification: {
         title,
