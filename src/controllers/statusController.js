@@ -95,6 +95,36 @@ async function updateStatus(req, res) {
     
     if (assignError) {
       console.error("Gagal insert report_assignees:", assignError);
+    } else {
+      // Send notifications to assigned officers
+      const { data: officers } = await supabase
+        .from("users")
+        .select("id, fcm_token")
+        .in("id", assigned_officer_ids);
+        
+      if (officers && officers.length > 0) {
+        const officerNotifications = officers.map(officer => ({
+          user_id: officer.id,
+          report_id: reportId,
+          type: "assigned_report",
+          title: "Tugas Baru!",
+          body: `Anda telah ditugaskan untuk menangani Laporan baru. Segera cek!`,
+          is_read: false,
+        }));
+        await supabase.from("notifications").insert(officerNotifications);
+
+        const { sendPushNotification } = require("../config/firebase");
+        for (const officer of officers) {
+          if (officer.fcm_token) {
+            await sendPushNotification(
+              officer.fcm_token,
+              "Tugas Baru!",
+              `Anda telah ditugaskan untuk menangani Laporan baru. Segera cek!`,
+              { reportId: reportId.toString(), type: "assigned_report" }
+            );
+          }
+        }
+      }
     }
   }
 

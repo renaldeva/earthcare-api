@@ -89,21 +89,53 @@ async function createReport(req, res) {
     is_read: false,
   });
 
-  // Send push notification via Firebase Admin
+  // Send push notification via Firebase Admin to reporter
   const { data: userData } = await supabase
     .from("users")
     .select("fcm_token")
     .eq("id", req.user.id)
     .single();
 
+  const { sendPushNotification } = require("../config/firebase");
+
   if (userData && userData.fcm_token) {
-    const { sendPushNotification } = require("../config/firebase");
     await sendPushNotification(
       userData.fcm_token,
       "Laporan Berhasil Dibuat!",
       `Laporan "${title}" telah kami terima dan akan segera diverifikasi oleh petugas.`,
       { reportId: report.id.toString(), type: "report_created" }
     );
+  }
+
+  // Notifikasi ke semua admin
+  const { data: admins } = await supabase
+    .from("users")
+    .select("id, fcm_token")
+    .eq("role", "admin");
+
+  if (admins && admins.length > 0) {
+    const adminNotifications = admins.map(admin => ({
+      user_id: admin.id,
+      report_id: report.id,
+      type: "new_report",
+      title: "Laporan Baru Masuk!",
+      body: `Ada laporan baru: "${title}" di kategori ${category}. Segera periksa!`,
+      is_read: false,
+    }));
+    
+    await supabase.from("notifications").insert(adminNotifications);
+
+    // Push notification to admins
+    for (const admin of admins) {
+      if (admin.fcm_token) {
+        await sendPushNotification(
+          admin.fcm_token,
+          "Laporan Baru Masuk!",
+          `Ada laporan baru: "${title}" di kategori ${category}. Segera periksa!`,
+          { reportId: report.id.toString(), type: "new_report" }
+        );
+      }
+    }
   }
 
   return res.status(201).json({
