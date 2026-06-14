@@ -7,15 +7,15 @@ const {
   deleteComment,
 } = require("../controllers/commentController");
 
-const { requireAuth } = require("../middlewares/authMiddleware");
+const { authenticate } = require("../middleware/auth");
 
 // GET /api/comments/:reportId
-router.get("/:reportId", requireAuth, getComments);
+router.get("/:reportId", authenticate, getComments);
 
 // POST /api/comments
-router.post("/", requireAuth, addComment);
+router.post("/", authenticate, addComment);
 
 // DELETE /api/comments/:id
-router.delete("/:id", requireAuth, deleteComment);
+router.delete("/:id", authenticate, deleteComment);
 
 module.exports = router;
