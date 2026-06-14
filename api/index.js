@@ -131,6 +131,11 @@ app.use(
   require("../src/routes/status")
 );
 
+app.use(
+  "/api/comments",
+  require("../src/routes/comments")
+);
+
 /* ==================================================
    TEST ROUTE
 ================================================== */
