@@ -769,9 +769,37 @@ async function getOfficers(req, res) {
       });
     }
 
+    // Hitung status "Sedang Bertugas" secara dinamis berdasarkan laporan yang belum selesai
+    const { data: activeReports } = await supabase
+      .from("reports")
+      .select("id")
+      .in("status", ["received", "processing", "investigating"]);
+
+    let busyOfficerIds = new Set();
+
+    if (activeReports && activeReports.length > 0) {
+      const activeReportIds = activeReports.map(r => r.id);
+      const { data: assignments } = await supabase
+        .from("report_assignees")
+        .select("user_id")
+        .in("report_id", activeReportIds);
+
+      if (assignments) {
+        busyOfficerIds = new Set(assignments.map(a => a.user_id));
+      }
+    }
+
+    const enrichedOfficers = officers.map((o) => {
+      // Jika statusnya Aktif tapi dia punya tugas, ubah jadi Sedang Bertugas
+      if (o.officer_status === "Aktif" && busyOfficerIds.has(o.id)) {
+        return { ...o, officer_status: "Sedang Bertugas" };
+      }
+      return o;
+    });
+
     return res.json({
       success: true,
-      data: officers,
+      data: enrichedOfficers,
     });
   } catch (error) {
     console.error(error);
