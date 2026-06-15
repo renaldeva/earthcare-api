@@ -773,7 +773,7 @@ async function getOfficers(req, res) {
     const { data: activeReports } = await supabase
       .from("reports")
       .select("id")
-      .in("status", ["received", "processing", "investigating"]);
+      .in("status", ["verified", "assigned", "in_progress"]);
 
     let busyOfficerIds = new Set();
 
