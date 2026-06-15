@@ -1,5 +1,6 @@
 const admin = require("firebase-admin");
 const { getMessaging } = require("firebase-admin/messaging");
+const { getApps } = require("firebase-admin/app");
 const path = require("path");
 
 // Coba baca dari environment variable dulu (untuk Vercel/Production)
@@ -22,7 +23,7 @@ try {
   }
 
   if (serviceAccount) {
-    if (!admin.apps.length) {
+    if (!getApps().length) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
@@ -39,7 +40,7 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
   if (!fcmToken) return;
   
   try {
-    if (!admin.apps.length) {
+    if (!getApps().length) {
       console.error("Cannot send push notification: Firebase app is not initialized.");
       return;
     }
