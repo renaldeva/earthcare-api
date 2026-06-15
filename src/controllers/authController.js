@@ -781,11 +781,11 @@ async function getOfficers(req, res) {
       const activeReportIds = activeReports.map(r => r.id);
       const { data: assignments } = await supabase
         .from("report_assignees")
-        .select("user_id")
+        .select("officer_id")
         .in("report_id", activeReportIds);
 
       if (assignments) {
-        busyOfficerIds = new Set(assignments.map(a => a.user_id));
+        busyOfficerIds = new Set(assignments.map(a => a.officer_id));
       }
     }
 
