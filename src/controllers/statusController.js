@@ -87,7 +87,7 @@ async function updateStatus(req, res) {
     console.error(updateError);
     return res
       .status(500)
-      .json({ success: false, message: "Gagal memperbarui status" });
+      .json({ success: false, message: `Gagal memperbarui status: ${updateError.message || JSON.stringify(updateError)}` });
   }
 
   // Handle multiple assignees
