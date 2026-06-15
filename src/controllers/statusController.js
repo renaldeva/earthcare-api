@@ -8,6 +8,7 @@ const STATUS_FLOW = [
   "assigned",     // Ditugaskan
   "in_progress",  // Dalam Penanganan
   "resolved",     // Selesai
+  "rejected",     // Ditolak
 ];
 
 const STATUS_LABELS = {
@@ -16,6 +17,7 @@ const STATUS_LABELS = {
   assigned: "Ditugaskan",
   in_progress: "Dalam Penanganan",
   resolved: "Selesai",
+  rejected: "Ditolak",
 };
 
 // ── PATCH /api/status/:reportId ─────────────────────────
@@ -51,14 +53,24 @@ async function updateStatus(req, res) {
   }
 
   // Validasi urutan status (tidak boleh mundur)
-  const currentIdx = STATUS_FLOW.indexOf(report.status);
-  const newIdx = STATUS_FLOW.indexOf(status);
+  if (status === "rejected") {
+    // Hanya bisa menolak jika statusnya masih received
+    if (report.status !== "received") {
+      return res.status(400).json({
+        success: false,
+        message: "Hanya laporan baru (Diterima) yang bisa ditolak",
+      });
+    }
+  } else {
+    const currentIdx = STATUS_FLOW.indexOf(report.status);
+    const newIdx = STATUS_FLOW.indexOf(status);
 
-  if (newIdx < currentIdx) {
-    return res.status(400).json({
-      success: false,
-      message: `Status tidak bisa dikembalikan dari "${STATUS_LABELS[report.status]}" ke "${STATUS_LABELS[status]}"`,
-    });
+    if (newIdx < currentIdx) {
+      return res.status(400).json({
+        success: false,
+        message: `Status tidak bisa dikembalikan dari "${STATUS_LABELS[report.status]}" ke "${STATUS_LABELS[status]}"`,
+      });
+    }
   }
 
   // Update tabel reports
