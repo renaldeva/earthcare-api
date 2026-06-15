@@ -101,7 +101,7 @@ async function updateStatus(req, res) {
       officer_id: officerId
     }));
     const { error: assignError } = await supabase.from("report_assignees").insert(assigneePayload);
-    
+
     if (assignError) {
       console.error("Gagal insert report_assignees:", assignError);
     } else {
