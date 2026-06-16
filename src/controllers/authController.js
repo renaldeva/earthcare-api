@@ -868,6 +868,40 @@ async function updateOfficer(req, res) {
 }
 
 /* =========================
+   DELETE OFFICER
+========================= */
+async function deleteOfficer(req, res) {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from("users")
+      .delete()
+      .eq("id", id)
+      .eq("role", "officer");
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Gagal menghapus petugas",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Petugas berhasil dihapus",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server",
+    });
+  }
+}
+
+/* =========================
    EXPORTS
 ========================= */
 module.exports = {
@@ -885,5 +919,6 @@ module.exports = {
   createOfficer,
   getOfficers,
   updateOfficer,
+  deleteOfficer,
   updateProfile,
 };
