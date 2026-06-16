@@ -55,6 +55,12 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
         title,
         body
       },
+      android: {
+        priority: "high",
+        notification: {
+          channelId: "earthcare_high_importance_channel"
+        }
+      },
       data,
       token: fcmToken
     };
