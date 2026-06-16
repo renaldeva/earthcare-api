@@ -874,6 +874,18 @@ async function deleteOfficer(req, res) {
   try {
     const { id } = req.params;
 
+    // Hapus referensi di tabel reports (set null)
+    await supabase
+      .from("reports")
+      .update({ assigned_officer_id: null })
+      .eq("assigned_officer_id", id);
+
+    // Hapus referensi di tabel report_assignees
+    await supabase
+      .from("report_assignees")
+      .delete()
+      .eq("officer_id", id);
+
     const { error } = await supabase
       .from("users")
       .delete()
