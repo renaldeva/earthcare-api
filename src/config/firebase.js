@@ -45,7 +45,7 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
   if (!fcmToken) return;
 
   try {
-    if (!getApps().length) {
+    if (!admin.apps.length) {
       console.error("Cannot send push notification: Firebase app is not initialized.");
       return;
     }
