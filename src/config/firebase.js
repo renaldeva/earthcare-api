@@ -23,7 +23,7 @@ try {
   }
 
   if (serviceAccount) {
-    if (!admin.apps.length) {
+    if (!getApps().length) {
       // FIX VERCEL PRIVATE KEY NEWLINE ISSUE
       if (serviceAccount.private_key) {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
@@ -45,7 +45,7 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
   if (!fcmToken) return;
 
   try {
-    if (!admin.apps.length) {
+    if (!getApps().length) {
       console.error("Cannot send push notification: Firebase app is not initialized.");
       return;
     }

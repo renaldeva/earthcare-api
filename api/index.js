@@ -153,9 +153,9 @@ app.get("/api/test-js", (req, res) => {
 ================================================== */
 
 app.get("/api/test-firebase", (req, res) => {
-  const admin = require("../src/config/firebase").admin;
+  const { getApps } = require("firebase-admin/app");
   res.json({
-    appsLength: admin.apps.length,
+    appsLength: getApps().length,
     hasEnvVar: !!process.env.FIREBASE_SERVICE_ACCOUNT,
     envVarLength: process.env.FIREBASE_SERVICE_ACCOUNT?.length || 0,
   });
