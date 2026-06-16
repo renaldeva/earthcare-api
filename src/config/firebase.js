@@ -30,8 +30,9 @@ try {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
       }
 
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+      const { initializeApp, cert } = require("firebase-admin/app");
+      initializeApp({
+        credential: cert(serviceAccount)
       });
       console.log("Firebase Admin SDK initialized successfully.");
     }
