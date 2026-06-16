@@ -154,6 +154,7 @@ app.get("/api/test-js", (req, res) => {
 
 app.get("/api/test-firebase", (req, res) => {
   const { getApps } = require("firebase-admin/app");
+  const { getFirebaseInitError } = require("../src/config/firebase");
   
   let parseSuccess = false;
   let initError = null;
@@ -174,7 +175,8 @@ app.get("/api/test-firebase", (req, res) => {
     envVarLength: process.env.FIREBASE_SERVICE_ACCOUNT?.length || 0,
     parseSuccess,
     projectId: serviceAccountTest?.project_id || null,
-    initError
+    parseError: initError,
+    firebaseInitError: getFirebaseInitError ? getFirebaseInitError() : null
   });
 });
 

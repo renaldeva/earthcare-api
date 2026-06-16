@@ -5,6 +5,7 @@ const path = require("path");
 
 // Coba baca dari environment variable dulu (untuk Vercel/Production)
 let serviceAccount;
+let firebaseInitError = null;
 
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -35,10 +36,12 @@ try {
       console.log("Firebase Admin SDK initialized successfully.");
     }
   } else {
-    console.error("CRITICAL ERROR: Firebase Admin SDK not initialized! No credentials provided. Push notifications will crash.");
+    firebaseInitError = "Firebase Admin SDK not initialized! No credentials provided.";
+    console.error("CRITICAL ERROR: " + firebaseInitError);
   }
 } catch (error) {
-  console.error("Failed to initialize Firebase Admin SDK.", error.message);
+  firebaseInitError = "Failed to initialize Firebase Admin SDK: " + error.message;
+  console.error(firebaseInitError);
 }
 
 const sendPushNotification = async (fcmToken, title, body, data = {}) => {
@@ -75,5 +78,6 @@ const sendPushNotification = async (fcmToken, title, body, data = {}) => {
 
 module.exports = {
   admin,
-  sendPushNotification
+  sendPushNotification,
+  getFirebaseInitError: () => firebaseInitError
 };
