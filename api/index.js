@@ -149,6 +149,19 @@ app.get("/api/test-js", (req, res) => {
 });
 
 /* ==================================================
+   TEST FIREBASE - HAPUS SETELAH DEBUG SELESAI
+================================================== */
+
+app.get("/api/test-firebase", (req, res) => {
+  const admin = require("../src/config/firebase").admin;
+  res.json({
+    appsLength: admin.apps.length,
+    hasEnvVar: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+    envVarLength: process.env.FIREBASE_SERVICE_ACCOUNT?.length || 0,
+  });
+});
+
+/* ==================================================
    404 HANDLER
 ================================================== */
 
@@ -176,7 +189,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Jalankan server jika file ini dieksekusi secara langsung (local environment)
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {

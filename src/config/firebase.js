@@ -23,7 +23,7 @@ try {
   }
 
   if (serviceAccount) {
-    if (!getApps().length) {
+    if (!admin.apps.length) {
       // FIX VERCEL PRIVATE KEY NEWLINE ISSUE
       if (serviceAccount.private_key) {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
