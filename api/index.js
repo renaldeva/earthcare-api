@@ -154,10 +154,27 @@ app.get("/api/test-js", (req, res) => {
 
 app.get("/api/test-firebase", (req, res) => {
   const { getApps } = require("firebase-admin/app");
+  
+  let parseSuccess = false;
+  let initError = null;
+  let serviceAccountTest = null;
+  
+  try {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccountTest = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      parseSuccess = true;
+    }
+  } catch (e) {
+    initError = "Parse error: " + e.message;
+  }
+  
   res.json({
     appsLength: getApps().length,
     hasEnvVar: !!process.env.FIREBASE_SERVICE_ACCOUNT,
     envVarLength: process.env.FIREBASE_SERVICE_ACCOUNT?.length || 0,
+    parseSuccess,
+    projectId: serviceAccountTest?.project_id || null,
+    initError
   });
 });
 
