@@ -1,282 +1,114 @@
-# 🌍 EarthCare API
+# EarthCare API 🌍
 
-> REST API backend untuk aplikasi pelaporan kerusakan lingkungan **EarthCare** — menjembatani kepedulian warga dengan akuntabilitas instansi pemerintah daerah.
+EarthCare API adalah *backend service* untuk platform pelaporan lingkungan berbasis lokasi. API ini melayani aplikasi _mobile_ (Flutter) untuk menangani autentikasi pengguna, manajemen laporan lingkungan, interaksi antarpengguna (komentar), serta sistem notifikasi otomatis.
 
----
+API ini dibangun menggunakan **Node.js** dengan *framework* **Express** dan terintegrasi dengan **Supabase** (sebagai *database* PostgreSQL dan manajemen penyimpanan), serta **Firebase Admin SDK** (untuk pengiriman *Push Notification* ke perangkat).
 
-## 📌 Tentang Proyek
+## 🚀 Fitur Utama
 
-EarthCare API adalah backend berbasis **Node.js + Express** yang melayani aplikasi mobile Flutter EarthCare. API ini dirancang agar setiap laporan lingkungan yang masuk dapat dipantau secara transparan oleh warga dan ditindaklanjuti secara terstruktur oleh petugas dinas.
-
----
+- **Autentikasi (JWT & OTP)**: Registrasi akun dengan verifikasi email OTP, fitur lupa kata sandi (*forgot password*), serta _role-based access_ (`citizen`, `officer`, `admin`).
+- **Pelaporan Lingkungan**: Warga dapat membuat laporan lingkungan (seperti tumpukan sampah, jalan rusak) dilengkapi titik koordinat GPS dan foto bukti fisik.
+- **Sistem Status & Riwayat**: Status laporan akan diperbarui oleh petugas (mulai dari `received`, `verified`, `assigned`, `in_progress`, hingga `resolved`). Setiap perubahan status akan dicatat pada riwayat laporan.
+- **Push Notifications**: Pengguna yang melaporkan akan mendapat notifikasi instan (_push notification_) di *smartphone* mereka setiap kali laporan diproses atau ada aktivitas baru.
+- **Diskusi/Komentar**: Pengguna dapat memberikan komentar dan mendiskusikan penanganan di setiap laporan.
+- **Heatmap Data**: Mendukung penyajian *raw data* laporan dalam bentuk peta *heatmap*.
 
 ## 🛠️ Tech Stack
 
-| Layer | Teknologi |
-|---|---|
-| Runtime | Node.js + Express |
-| Database | PostgreSQL via **Supabase** |
-| Storage | **Supabase Storage** (foto bukti) |
-| Autentikasi | **JWT** (jsonwebtoken + bcryptjs) |
-| Dokumentasi | Swagger UI (`/api/docs`) |
-| Deploy | **Vercel** (Serverless Functions) |
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: Supabase (PostgreSQL)
+- **Storage**: Supabase Storage
+- **Push Notification**: Firebase Cloud Messaging (Firebase Admin SDK)
+- **Email Service**: Nodemailer (Gmail SMTP)
+- **Documentation**: Swagger UI
+- **Deployment**: Vercel
 
----
+## 📚 Dokumentasi API (Swagger)
 
-## 👤 Role Pengguna
+Setelah server berjalan, Anda dapat mengakses daftar lengkap *endpoint*, format _request/response_, dan melakukan tes API secara langsung melalui Swagger UI:
 
-| Role | Deskripsi | Akses |
-|---|---|---|
-| `citizen` | Warga pelapor | Buat laporan, pantau laporan sendiri, terima notifikasi |
-| `admin` | Petugas dinas / administrator | Semua akses citizen + update status, hapus data, lihat semua laporan |
+👉 **`http://localhost:3000/api/docs`** (di mesin lokal)
+👉 **`https://earthcare-api.vercel.app/api/docs`** (di _production_)
 
----
+## ⚙️ Variabel Lingkungan (.env)
 
-## 📁 Struktur Proyek
+Untuk menjalankan proyek ini secara lokal, Anda perlu menyiapkan *environment variables*. Buatlah sebuah file bernama `.env` di _root directory_ proyek Anda dan isi dengan referensi berikut:
 
+```env
+# Server Port (Opsional)
+PORT=3000
+
+# Kunci Rahasia JWT
+JWT_SECRET=your_super_secret_jwt_key
+
+# Supabase Credentials (Untuk Database & Storage)
+SUPABASE_URL=https://xxxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Firebase Credentials (Untuk Push Notification)
+# Berupa format JSON dari serviceAccountKey.json yang di-stringify (wajib ada untuk deploy Vercel)
+FIREBASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"...","private_key":"..."}
+
+# Gmail SMTP Credentials (Untuk Pengiriman OTP via Email)
+GMAIL_USER=email_anda@gmail.com
+GMAIL_APP_PASS=your_gmail_app_password
 ```
+
+> **Catatan untuk Firebase:** Jika Anda mengembangkan di _environment_ lokal, Anda bisa menggunakan file `src/config/serviceAccountKey.json` sebagai _fallback_ dari `FIREBASE_SERVICE_ACCOUNT`. Namun, file tersebut **harus selalu diabaikan (.gitignore)** agar kredensial Anda tidak bocor ke publik.
+
+## 💻 Menjalankan Proyek Secara Lokal
+
+1. **Clone repositori**
+   ```bash
+   git clone https://github.com/renaldeva/earthcare-api.git
+   cd earthcare-api
+   ```
+
+2. **Install dependensi**
+   ```bash
+   npm install
+   ```
+
+3. **Atur *Environment Variables***
+   Buat file `.env` berdasarkan konfigurasi di atas.
+
+4. **Jalankan server** (menggunakan *nodemon* untuk _auto-reload_)
+   ```bash
+   npm run dev
+   ```
+   *Atau jalankan server tanpa nodemon:*
+   ```bash
+   npm start
+   ```
+
+5. **Akses server**
+   Server akan berjalan di `http://localhost:3000`.
+
+## 🌐 Deployment (Vercel)
+
+Proyek ini telah dikonfigurasi untuk _deployment serverless_ di [Vercel](https://vercel.com).
+Pengaturan rute *serverless functions* sudah di-set di dalam file `vercel.json` dan aplikasi akan dibaca melalui *entry point* `api/index.js`. 
+
+Setiap kali Anda men-_push_ kode ke cabang `main` di GitHub, Vercel akan otomatis melakukan _deploy_ ulang (jika fitur CI/CD terhubung).
+
+## 📄 Struktur Folder Utama
+
+```text
 earthcare-api/
-├── api/
-│   ├── index.js                 # Entry point Express + Swagger
-│   ├── swagger.yaml             # Spesifikasi OpenAPI 3.0
-│   ├── lib/
-│   │   └── supabase.js          # Supabase client singleton
-│   ├── middleware/
-│   │   └── auth.js              # JWT authenticate + authorize (role guard)
-│   ├── controllers/
-│   │   ├── authController.js    # Register, Login, Get Profile
-│   │   ├── reportController.js  # CRUD laporan + heatmap
-│   │   ├── statusController.js  # Update status + notifikasi
-│   │   └── uploadController.js  # Signed URL Supabase Storage
-│   └── routes/
-│       ├── auth.js
-│       ├── reports.js
-│       ├── status.js
-│       └── upload.js
-├── schema.sql                   # Skema database PostgreSQL lengkap
-├── vercel.json                  # Konfigurasi deploy Vercel
-├── .env.example                 # Template environment variables
-└── package.json
+├── api/                   # Entry point aplikasi untuk deployment Vercel (index.js)
+├── src/
+│   ├── config/            # Pengaturan kunci/kredensial eksternal (Firebase)
+│   ├── controllers/       # Logika fungsi untuk setiap endpoint (Auth, Reports, Status, dll.)
+│   ├── lib/               # Utility global (Supabase Client, Mailer, Notification Helper)
+│   ├── middleware/        # Pembatas hak akses (Auth & RBAC)
+│   ├── routes/            # Rute URL Express untuk masing-masing fitur
+│   └── swagger.yaml       # File dokumentasi struktur API
+├── .env                   # File konfigurasi rahasia (TIDAK DIPUBLIKASI)
+├── vercel.json            # Konfigurasi _serverless_ Vercel
+├── package.json           # Daftar pustaka NPM
+└── README.md              # File ini
 ```
 
 ---
-
-## ✨ Fitur-Fitur API
-
-### 🔐 1. Autentikasi (Auth)
-
-Sistem autentikasi berbasis **JWT (JSON Web Token)** dengan masa berlaku 7 hari.
-
-**Endpoint:**
-
-| Method | URL | Deskripsi |
-|---|---|---|
-| `POST` | `/api/auth/register` | Daftar akun baru (citizen / admin) |
-| `POST` | `/api/auth/login` | Login, mendapatkan token JWT |
-| `GET` | `/api/auth/me` | Ambil profil user yang sedang login |
-
-**Fitur detail:**
-- Password di-hash menggunakan **bcryptjs** dengan salt 12 (sangat aman)
-- Token JWT otomatis diterima langsung setelah registrasi
-- Validasi duplikat email saat registrasi
-- Role guard: setiap endpoint dilindungi middleware `authorize(role)`
-
-**Contoh response login:**
-```json
-{
-  "success": true,
-  "message": "Login berhasil",
-  "data": {
-    "user": { "id": "uuid", "name": "Budi", "email": "budi@email.com", "role": "citizen" },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
----
-
-### 📋 2. Manajemen Laporan (Reports)
-
-Inti dari sistem EarthCare. Warga dapat membuat laporan kerusakan lingkungan dengan bukti foto terautentikasi.
-
-**Endpoint:**
-
-| Method | URL | Role | Deskripsi |
-|---|---|---|---|
-| `POST` | `/api/reports` | citizen | Buat laporan baru |
-| `GET` | `/api/reports` | semua | Daftar laporan (dengan filter & pagination) |
-| `GET` | `/api/reports/:id` | semua | Detail laporan + riwayat status |
-| `GET` | `/api/reports/heatmap` | semua | Data koordinat untuk heatmap peta |
-| `DELETE` | `/api/reports/:id` | citizen/admin | Hapus laporan |
-
-**Kategori laporan yang tersedia:**
-
-| Kode | Kategori |
-|---|---|
-| `sampah_liar` | Sampah Liar |
-| `sungai_tercemar` | Sungai Tercemar |
-| `pohon_tumbang` | Pohon Tumbang |
-| `banjir` | Banjir |
-| `polusi_udara` | Polusi Udara |
-| `kerusakan_fasilitas` | Kerusakan Fasilitas |
-| `lainnya` | Lainnya |
-
-**Fitur detail:**
-- `report_code` unik dibuat otomatis dengan format `EC-<timestamp>-<id>` (contoh: `EC-1716123456-ABCDEF`)
-- Mendukung `photo_metadata` untuk menyimpan data GPS, timestamp, dan akurasi dari watermark kamera
-- Filter laporan berdasarkan `category`, `status`, dan `user_id`
-- Pagination dengan `page` dan `limit`
-- Citizen hanya bisa melihat laporan miliknya sendiri; admin melihat semua
-
----
-
-### 📸 3. Upload Foto Bukti (Upload)
-
-Sistem upload foto yang efisien menggunakan **Supabase Storage Signed URL** — foto dikirim langsung dari Flutter ke storage tanpa melewati server API, sehingga lebih cepat dan hemat bandwidth.
-
-**Endpoint:**
-
-| Method | URL | Deskripsi |
-|---|---|---|
-| `POST` | `/api/upload/signed-url` | Minta signed URL untuk upload |
-| `DELETE` | `/api/upload` | Hapus foto dari storage |
-
-**Alur upload foto dari Flutter:**
-
-```
-Flutter App
-    │
-    ├─① POST /api/upload/signed-url
-    │       → dapat signed_url + public_url
-    │
-    ├─② PUT <signed_url> (langsung ke Supabase Storage)
-    │       → foto terupload tanpa lewat server
-    │
-    └─③ POST /api/reports
-            → sertakan public_url sebagai photo_url
-```
-
-**Fitur detail:**
-- Hanya menerima format `image/jpeg`, `image/png`, `image/webp`
-- Path foto tersimpan per user: `photos/{userId}/{uuid}.jpg` (mencegah konflik)
-- Signed URL berlaku 60 detik (keamanan)
-- Citizen hanya bisa menghapus foto miliknya sendiri
-
----
-
-### 🔄 4. Status & Notifikasi
-
-Sistem pelacakan tindak lanjut yang transparan dengan 5 tahap status berurutan dan notifikasi real-time ke warga.
-
-**Endpoint:**
-
-| Method | URL | Role | Deskripsi |
-|---|---|---|---|
-| `PATCH` | `/api/status/:reportId` | admin | Update status laporan |
-| `GET` | `/api/status/:reportId/history` | semua | Riwayat perubahan status |
-| `GET` | `/api/status/notifications` | semua | Daftar notifikasi user |
-| `PATCH` | `/api/status/notifications/:id/read` | semua | Tandai notifikasi sudah dibaca |
-
-**Alur status laporan:**
-
-```
-  [1] received      →  Laporan diterima oleh sistem
-       ↓
-  [2] verified      →  Diverifikasi oleh petugas dinas
-       ↓
-  [3] assigned      →  Ditugaskan ke tim lapangan
-       ↓
-  [4] in_progress   →  Sedang dalam penanganan di lokasi
-       ↓
-  [5] resolved      →  Penanganan selesai ✅
-```
-
-**Fitur detail:**
-- Status **tidak bisa mundur** ke tahap sebelumnya (validasi ketat)
-- Setiap perubahan status wajib disertai catatan (`note`)
-- Petugas dapat melampirkan foto bukti (`photo_url`) di setiap tahap
-- Notifikasi otomatis dikirim ke pemilik laporan setiap kali status berubah
-- Riwayat lengkap tersimpan di tabel `report_status_history` (audit trail)
-
----
-
-### 🗺️ 5. Heatmap Real-time
-
-Data koordinat laporan tersedia sebagai endpoint khusus untuk divisualisasikan sebagai heatmap interaktif pada peta di aplikasi Flutter.
-
-```
-GET /api/reports/heatmap?days=30&category=sampah_liar
-```
-
-Response berisi array titik koordinat (`latitude`, `longitude`) beserta kategori dan status, siap dikonsumsi oleh library peta seperti `flutter_map` atau `google_maps_flutter`.
-
----
-
-### 📚 6. Dokumentasi Swagger UI
-
-API dilengkapi dengan dokumentasi interaktif yang bisa diakses langsung di browser setelah deploy.
-
-```
-https://<nama-project>.vercel.app/api/docs
-```
-
-Fitur Swagger yang tersedia:
-- **Try it out** — test request langsung dari browser
-- **Authorize** — input token JWT sekali, berlaku untuk semua endpoint
-- **Schema model** — lihat struktur request/response lengkap
-- **Filter endpoint** — cari endpoint berdasarkan nama
-
----
-
-## 🗄️ Skema Database
-
-Database PostgreSQL di Supabase terdiri dari 4 tabel utama:
-
-| Tabel | Deskripsi |
-|---|---|
-| `users` | Data akun pengguna (citizen & admin) |
-| `reports` | Data laporan kerusakan lingkungan |
-| `report_status_history` | Riwayat perubahan status setiap laporan (audit trail) |
-| `notifications` | Notifikasi untuk warga pelapor |
-
-Semua tabel menggunakan **UUID** sebagai primary key dan dilengkapi **Row Level Security (RLS)** Supabase.
-
----
-
-## 🔒 Keamanan
-
-- Semua endpoint (kecuali register & login) wajib menyertakan **Bearer Token JWT**
-- Password di-hash dengan **bcryptjs salt 12** sebelum disimpan
-- Role guard mencegah citizen mengakses endpoint admin
-- Signed URL upload berlaku hanya **60 detik**
-- Path foto dikunci per user ID untuk mencegah akses lintas user
-- Service Role Key Supabase tidak pernah dikirim ke client
-
----
-
-## 🚀 Menjalankan Lokal
-
-```bash
-# 1. Clone & install
-git clone <repo-url>
-cd earthcare-api
-npm install
-
-# 2. Buat file environment
-cp .env.example .env
-# Isi SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET
-
-# 3. Jalankan server
-npm start
-# atau dengan auto-reload:
-npx nodemon api/index.js
-
-# 4. Buka Swagger UI
-# http://localhost:3000/api/docs
-```
-
----
-
-## 📄 Lisensi
-
-Project ini dibuat untuk keperluan pengembangan aplikasi EarthCare.
+Dibuat dengan ❤️ untuk lingkungan yang lebih baik.
