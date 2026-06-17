@@ -22,4 +22,4 @@ Jika Anda ingin melihat rincian jalur data (*endpoint*) apa saja yang tersedia, 
 👉 **[Dokumentasi EarthCare API (Swagger)](https://earthcare-api.vercel.app/api/docs)**
 
 ---
-*EarthCare - Bersama menjaga lingkungan yang lebih bersih dan aman.* 🌱
+*EarthCare - Bersama menjaga lingkungan yang lebih bersih dan aman.* 
