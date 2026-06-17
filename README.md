@@ -1,25 +1,33 @@
 # EarthCare API 🌍
 
-Selamat datang di repositori **EarthCare API**! 
+EarthCare API adalah *backend service* utama untuk aplikasi pelaporan lingkungan berbasis lokasi. API ini memproses seluruh arus data aplikasi, mulai dari manajemen pengguna, pengelolaan laporan masalah lingkungan, interaksi antarpengguna, hingga pengiriman notifikasi pintar.
 
-Ini adalah pusat data (*backend*) yang melayani seluruh kebutuhan aplikasi mobile EarthCare. Melalui API ini, seluruh data dari warga maupun petugas diproses, disimpan, dan disalurkan secara *real-time*.
+## 🚀 Fitur Utama
 
-## Apa Saja yang Dilakukan API Ini?
+- **Autentikasi (JWT & OTP)**: Sistem pendaftaran warga dengan verifikasi email OTP, fitur lupa kata sandi, serta hak akses berlapis (*role-based access* untuk `citizen`, `officer`, dan `admin`).
+- **Pelaporan Lingkungan**: Endpoint untuk menerima keluhan masalah lingkungan (seperti jalan rusak atau tumpukan sampah liar) beserta unggahan foto bukti dan titik koordinat (GPS).
+- **Manajemen Status Berjenjang**: Sistem pelacakan progres laporan yang diperbarui langsung oleh petugas (mulai dari diterima, diverifikasi, ditugaskan, dalam penanganan, hingga selesai). Seluruh riwayat perubahan tercatat otomatis.
+- **Push Notifications**: Pengiriman notifikasi instan (_push notification_) ke _smartphone_ pelapor setiap kali ada pembaruan status atau informasi baru.
+- **Ruang Diskusi (Komentar)**: Memfasilitasi interaksi dan diskusi secara _real-time_ antara pelapor warga dan petugas yang sedang menangani keluhan.
+- **Pemetaan (Heatmap)**: Menyajikan data agregat untuk memvisualisasikan area dengan frekuensi laporan tertinggi melalui fitur peta (Heatmap).
 
-API ini dirancang untuk menangani berbagai fungsi utama aplikasi EarthCare secara terpusat:
+## 🛠️ Tech Stack
 
-*   **Manajemen Pengguna (Warga & Petugas):** Menangani proses pendaftaran warga (dengan verifikasi email), akses masuk (*login*), pengelolaan profil, hingga pendaftaran akun khusus untuk petugas dan admin.
-*   **Pengolahan Laporan Lingkungan:** Menerima laporan dari warga terkait isu lingkungan (seperti jalan rusak, tumpukan sampah, atau pohon tumbang), lengkap dengan foto, deskripsi, dan titik koordinat (GPS).
-*   **Pemantauan Status Laporan:** Mengontrol alur penyelesaian masalah. Saat warga melapor, petugas bisa mengubah statusnya (misal: "Sedang Dikerjakan" atau "Selesai"). Semua riwayat perubahan status ini dicatat dengan rapi.
-*   **Sistem Notifikasi Pintar:** Mengirimkan notifikasi langsung (*Push Notification*) ke *handphone* pelapor setiap kali ada pembaruan atau petugas memberikan respon pada laporan mereka.
-*   **Ruang Diskusi & Komentar:** Memfasilitasi interaksi dan tanya jawab langsung antara warga yang melapor dengan petugas yang menangani di kolom komentar setiap laporan.
-*   **Pemetaan (Heatmap):** Menyediakan titik-titik data persebaran masalah lingkungan untuk ditampilkan dalam bentuk peta (*Heatmap*) di aplikasi.
+API ini dibangun dengan arsitektur modern untuk menjamin kecepatan, keamanan, dan skalabilitas:
 
-## 📚 Lihat Dokumentasi API
+- **Runtime Environment**: Node.js
+- **Web Framework**: Express.js
+- **Database & Cloud Storage**: Supabase (PostgreSQL)
+- **Push Notification Service**: Firebase Cloud Messaging (Firebase Admin SDK)
+- **Email Service (OTP)**: Nodemailer (via SMTP)
+- **API Documentation**: Swagger UI
+- **Hosting / Deployment**: Vercel Serverless
 
-Jika Anda ingin melihat rincian jalur data (*endpoint*) apa saja yang tersedia, silakan kunjungi halaman dokumentasi interaktif kami di sini:
+## 📚 Dokumentasi API (Swagger)
 
-👉 **[Dokumentasi EarthCare API (Swagger)](https://earthcare-api.vercel.app/api/docs)**
+Seluruh struktur data, rute (_endpoints_), dan panduan _request/response_ API ini telah didokumentasikan secara rapi. Anda dapat membaca, mengeksplorasi, dan mengujinya secara interaktif melalui tautan Swagger UI berikut:
+
+👉 **[https://earthcare-api.vercel.app/api/docs](https://earthcare-api.vercel.app/api/docs)**
 
 ---
 *EarthCare - Bersama menjaga lingkungan yang lebih bersih dan aman.* 
